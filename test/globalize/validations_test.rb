@@ -145,6 +145,25 @@ class ValidationsTest < MiniTest::Spec
     end
   end
 
+  describe 'duplicated translations' do
+    let(:post) { Post.create(title: 'foo') }
+
+    describe '.translations' do
+      it 'is valid' do
+        expect { post.translations.first.valid? }
+      end
+
+      describe 'it has two :en translations' do
+        it 'should raise an error' do
+          assert_raises ActiveRecord::RecordInvalid do
+            post.translations.create!(locale: :en, title: 'bar' )
+          end
+        end
+      end
+
+    end
+  end
+
   # describe ".validates_associated" do
   # end
 end

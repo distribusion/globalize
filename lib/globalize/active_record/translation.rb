@@ -3,6 +3,7 @@ module Globalize
     class Translation < ::ActiveRecord::Base
 
       validates :locale, :presence => true
+      validate :validate_uniqueness_of_combination_of_locale_and_foreign_key
 
       class << self
         # Sometimes ActiveRecord queries .table_exists? before the table name
@@ -32,6 +33,19 @@ module Globalize
       def locale=(locale)
         write_attribute :locale, locale.to_s
       end
+
+      private
+
+      def foreign_attribute
+        self.class.reflections["globalized_model"].options[:foreign_key].to_sym
+      end
+
+      def validate_uniqueness_of_combination_of_locale_and_foreign_key
+        if (self.class.where(foreign_attribute => send(foreign_attribute), locale: locale) - [self.class.where(id: self.id).first]).count == 1
+          errors.add(foreign_attribute)
+        end
+      end
+
     end
   end
 end
